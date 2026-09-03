@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Content Decline Identification — FlyRank ML Internship</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.7;
+      color: #222;
+      background: #f7f8fa;
+    }
+
+    .container {
+      max-width: 950px;
+      margin: auto;
+      background: white;
+      padding: 45px 55px;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      font-size: 38px;
+      line-height: 1.2;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      margin-top: 45px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #ddd;
+    }
+
+    h3 {
+      margin-top: 28px;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 18px;
+    }
+
+    .abstract {
+      background: #f1f3f5;
+      padding: 22px;
+      border-left: 4px solid #333;
+      margin: 25px 0;
+    }
+
+    .metric {
+      display: inline-block;
+      background: #f1f3f5;
+      padding: 12px 18px;
+      margin: 6px;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
+      background: #f1f3f5;
+    }
+
+    code {
+      background: #f1f3f5;
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+
+    .note {
+      background: #fff8e1;
+      padding: 18px;
+      border-left: 4px solid #d6a700;
+      margin: 20px 0;
+    }
+
+    a {
+      color: #0969da;
+    }
+
+    .toc {
+      background: #fafafa;
+      padding: 20px;
+      border: 1px solid #ddd;
+    }
+
+    footer {
+      margin-top: 50px;
+      padding-top: 25px;
+      border-top: 2px solid #ddd;
+      color: #666;
+      font-size: 14px;
+    }
+
+    @media (max-width: 700px) {
+      .container {
+        padding: 25px 20px;
+      }
+
+      h1 {
+        font-size: 30px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>Identifying Content That May Be Declining</h1>
+
+  <p class="subtitle">
+    A machine-learning decision-support study using the FlyRank ML Internship dataset
+  </p>
+
+  <div class="toc">
+    <strong>Contents</strong>
+    <ol>
+      <li><a href="#abstract">Abstract</a></li>
+      <li><a href="#introduction">Introduction / Problem Statement</a></li>
+      <li><a href="#data">Data</a></li>
+      <li><a href="#methodology">Methodology</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#limitations">Limitations & Honest Framing</a></li>
+      <li><a href="#recommendations">Ranked Recommendations</a></li>
+      <li><a href="#reproducibility">Reproducibility</a></li>
+      <li><a href="#acknowledgments">Acknowledgments & Data Credit</a></li>
+    </ol>
+  </div>
+
+
+  <h2 id="abstract">1. Abstract</h2>
+
+  <div class="abstract">
+    <p>
+      This study asks whether observed content and performance signals can help
+      identify content that may be declining and therefore deserves human review.
+      Using the FlyRank ML Internship anonymized content dataset, a binary decline
+      label was constructed from the observed trend direction and a Random Forest
+      classifier was evaluated using a client-grouped train/test split.
+      The model used available numeric and categorical content, search, engagement,
+      freshness, and traffic-related signals while excluding direct identifiers
+      and the fields used to define the outcome.
+      On the held-out grouped test set, the measured Precision@50 was 1.00,
+      compared with the recorded baseline Precision@50 of 0.24.
+      This result is treated as an observed, dataset-specific decision-support
+      result rather than evidence of guaranteed future performance.
+    </p>
+  </div>
+
+
+  <h2 id="introduction">2. Introduction / Problem Statement</h2>
+
+  <p>
+    Content teams often manage large collections of pages and cannot manually
+    inspect every page with equal priority. A useful operational question is
+    therefore whether available performance and content signals can help create
+    a smaller review queue.
+  </p>
+
+  <p>
+    The research question for this project is:
+  </p>
+
+  <p>
+    <strong>
+      Can observed content and performance signals help identify content that may
+      be declining?
+    </strong>
+  </p>
+
+  <p>
+    The intended decision is not automatic content removal or automatic ranking
+    changes. Instead, the model is intended to help prioritize content for
+    human review and possible refresh.
+  </p>
+
+
+  <h2 id="data">3. Data</h2>
+
+  <p>
+    The analysis uses the anonymized content-refresh dataset provided as part of
+    the FlyRank ML Internship work.
+  </p>
+
+  <ul>
+    <li>Rows analysed: approximately 30,000 content records</li>
+    <li>Features available before modelling: 45 columns</li>
+    <li>Clients represented: 32 anonymized clients</li>
+    <li>Keyword articles: 27,207</li>
+    <li>Feedly articles: 2,096</li>
+    <li>Comparison articles: 697</li>
+  </ul>
+
+  <p>
+    The target was constructed as:
+  </p>
+
+  <p>
+    <code>is_declining_label = (trend_direction == "down")</code>
+  </p>
+
+  <p>
+    The resulting target distribution contained 16,262 records labelled as
+    declining and 13,738 records labelled as not declining.
+  </p>
+
+  <h3>Public-safety handling</h3>
+
+  <p>
+    Direct identifiers such as client and content identifiers were excluded from
+    the modelling features. Fields used to construct the outcome label were also
+    excluded from the final feature set.
+  </p>
+
+  <p>
+    No client names, private search queries, private URLs, domains, titles, or
+    other private identifying information are presented in this paper.
+  </p>
+
+
+  <h2 id="methodology">4. Methodology</h2>
+
+  <h3>Validation strategy</h3>
+
+  <p>
+    A GroupShuffleSplit was used with clients as the grouping variable.
+    The test size was 20% and the random seed was 42.
+  </p>
+
+  <p>
+    The resulting split contained:
+  </p>
+
+  <ul>
+    <li>Training records: 23,837</li>
+    <li>Test records: 6,163</li>
+    <li>Client overlap between training and test: 0</li>
+  </ul>
+
+  <p>
+    Grouping by client was used to reduce the risk that records from the same
+    client would appear in both training and test sets.
+  </p>
+
+  <h3>Model</h3>
+
+  <p>
+    The main model was a Random Forest classifier with:
+  </p>
+
+  <ul>
+    <li>300 trees</li>
+    <li>Random state: 42</li>
+    <li>Balanced class weights</li>
+    <li>Parallel processing enabled</li>
+  </ul>
+
+  <p>
+    Numeric features were median-imputed. Categorical features were imputed
+    using the most frequent value and one-hot encoded with unknown categories
+    ignored during transformation.
+  </p>
+
+  <h3>Feature groups</h3>
+
+  <p>
+    The model used available signals describing areas such as content
+    characteristics, search performance, engagement, freshness, and traffic.
+    Direct identifiers and outcome-defining fields were excluded.
+  </p>
+
+  <h3>Evaluation metric</h3>
+
+  <p>
+    The primary evaluation metric is Precision@50. It measures the proportion
+    of the 50 highest-ranked records that belong to the decline class.
+  </p>
+
+
+  <h2 id="results">5. Results</h2>
+
+  <div>
+    <span class="metric">Baseline P@50: 0.24</span>
+    <span class="metric">Random Forest P@50: 1.00</span>
+    <span class="metric">Difference: +0.76</span>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Approach</th>
+        <th>Precision@50</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td>Week-5 baseline</td>
+        <td>0.24</td>
+      </tr>
+
+      <tr>
+        <td>Random Forest</td>
+        <td>1.00</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    On the held-out client-grouped test set, the Random Forest ranked 50 records
+    at the top of the queue and all 50 belonged to the observed decline class.
+  </p>
+
+  <div class="note">
+    <strong>Important interpretation:</strong>
+    A Precision@50 of 1.00 is an observed result for this particular dataset,
+    feature construction, model, and validation split. It should not be
+    interpreted as a guarantee that the same precision will occur on future
+    unseen production data.
+  </div>
+
+  <h3>Operational interpretation</h3>
+
+  <p>
+    The result suggests that the available signals contain substantial information
+    about the observed decline label. The model can therefore be considered as a
+    prioritization mechanism for a human review queue.
+  </p>
+
+
+  <h2 id="limitations">6. Limitations & Honest Framing</h2>
+
+  <ul>
+    <li>
+      The result is measured on one held-out grouped split and may not generalize
+      to future datasets.
+    </li>
+
+    <li>
+      The study identifies records associated with an observed decline label;
+      it does not establish causality.
+    </li>
+
+    <li>
+      The model should not be interpreted as predicting or reproducing a search
+      engine's ranking algorithm.
+    </li>
+
+    <li>
+      The unusually high measured Precision@50 should be investigated further
+      before treating it as a production-ready performance estimate.
+    </li>
+
+    <li>
+      Potential feature overlap, label construction effects, and differences
+      between retrospective identification and genuine future prediction should
+      be tested in a future iteration.
+    </li>
+
+    <li>
+      Model output is intended as directional decision-support and should be
+      reviewed by humans before content changes are made.
+    </li>
+  </ul>
+
+
+  <h2 id="recommendations">7. Ranked Recommendations</h2>
+
+  <p>
+    The model output can be converted into a ranked review queue using the
+    predicted probability of decline.
+  </p>
+
+  <ol>
+    <li>
+      <strong>Review the highest-scoring content first.</strong>
+      Use the model score to prioritize a manageable review queue.
+    </li>
+
+    <li>
+      <strong>Investigate freshness.</strong>
+      Older content and content that has not been updated recently can be
+      candidates for editorial review.
+    </li>
+
+    <li>
+      <strong>Review engagement performance.</strong>
+      Low engagement can provide additional context when deciding whether a
+      page requires improvement.
+    </li>
+
+    <li>
+      <strong>Inspect observed performance trends.</strong>
+      Historical performance changes can help reviewers understand why a record
+      entered the review queue.
+    </li>
+
+    <li>
+      <strong>Keep humans in the loop.</strong>
+      Model scores should support editorial decisions rather than automatically
+      trigger content changes.
+    </li>
+  </ol>
+
+
+  <h2 id="reproducibility">8. Reproducibility</h2>
+
+  <p>
+    The analysis notebook and project materials are maintained in the public
+    GitHub repository.
+  </p>
+
+  <p>
+    <a href="https://github.com/Duchalsoham12/flyrank-ml-internship"
+       target="_blank">
+      View the FlyRank ML Internship project repository
+    </a>
+  </p>
+
+  <p>
+    The main capstone notebook is maintained under:
+  </p>
+
+  <p>
+    <code>work/notebooks/capstone.ipynb</code>
+  </p>
+
+  <p>
+    The project also contains generated result and recommendation artifacts
+    under the project's <code>work/outputs/</code> directory.
+  </p>
+
+
+  <h2 id="acknowledgments">9. Acknowledgments & Data Credit</h2>
+
+  <p>
+    This project was completed as part of the FlyRank ML Internship.
+  </p>
+
+  <p>
+    Built on the <strong>FlyRank ML Internship dataset</strong>.
+  </p>
+
+  <p>
+    <a href="https://flyrank.ai" target="_blank">
+      FlyRank
+    </a>
+  </p>
+
+
+  <footer>
+    <p>
+      This paper presents an educational and research-oriented analysis.
+      Results are observational and directional and should be interpreted as
+      decision-support rather than as a production guarantee.
+    </p>
+
+    <p>
+      © 2026 — FlyRank ML Internship Capstone
+    </p>
+  </footer>
+
+</div>
+
+</body>
+</html>
