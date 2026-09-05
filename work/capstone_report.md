@@ -7,12 +7,11 @@
 
 ## 0. Abstract
 
-This project investigates how machine learning can identify content that may be declining and help editors prioritize content for review. The dataset contains 30,000 rows across 32 clients, with client information treated as grouping information rather than predictive features.
+This project addresses a FlyRank content-performance problem: identifying content pages that may be declining so editors can prioritize which pages deserve review. The project investigates whether safe search-performance signals can be combined with machine learning to rank content records for editorial review.
 
-A Random Forest model was trained to identify content with a downward trend using a grouped 80/20 evaluation split and random state 42. On the held-out test set of 6,163 rows, the model achieved **Precision@50 of 1.00**, compared with **0.24 for the transparent baseline**.
+The dataset contains 30,000 records across 32 clients, with client information used only for grouped evaluation and not as a predictive feature. A Random Forest model was trained using non-leaking content and performance signals and evaluated using an 80/20 grouped split by client.
 
-The resulting recommendation queue contains 6,163 test records and is intended to support editorial review and prioritization rather than make autonomous decisions.
-
+On the held-out test set of 6,163 records, the model achieved **Precision@50 of 1.00**, compared with **0.24 for the transparent baseline**. The resulting ranked queue is intended to help FlyRank editors prioritize pages for investigation, recovery, or improvement. The model is a decision-support tool rather than an autonomous editorial decision-maker, and the results should be monitored on future data.
 ## 1. Problem Framing
 
 The decision supported by this project is which content items should be reviewed first because their performance may be declining.
