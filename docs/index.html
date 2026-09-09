@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -144,26 +145,24 @@
     </ol>
   </div>
 
-
   <h2 id="abstract">1. Abstract</h2>
 
   <div class="abstract">
     <p>
-      This study asks whether observed content and performance signals can help
-      identify content that may be declining and therefore deserves human review.
-      Using the FlyRank ML Internship anonymized content dataset, a binary decline
-      label was constructed from the observed trend direction and a Random Forest
-      classifier was evaluated using a client-grouped train/test split.
-      The model used available numeric and categorical content, search, engagement,
-      freshness, and traffic-related signals while excluding direct identifiers
-      and the fields used to define the outcome.
-      On the held-out grouped test set, the measured Precision@50 was 1.00,
-      compared with the recorded baseline Precision@50 of 0.24.
-      This result is treated as an observed, dataset-specific decision-support
-      result rather than evidence of guaranteed future performance.
+      This study investigates whether safe search-performance and content signals
+      can be used to rank pages that deserve human review for possible decline,
+      recovery, or improvement. Using 30,000 anonymized content records from the
+      FlyRank ML Internship dataset, a binary decline label was constructed from
+      the observed trend direction and evaluated using a client-grouped validation
+      strategy. A Random Forest classifier was compared with a simple trend-based
+      baseline using Precision@50 as the primary ranking metric. Both approaches
+      achieved a Precision@50 of 1.000 on the held-out test set, while the Random
+      Forest achieved an overall classification accuracy of 0.801. The results
+      indicate that the available signals contain useful information for
+      decision-support, but the identical top-50 ranking performance means the
+      model cannot be claimed to outperform the simple baseline on this split.
     </p>
   </div>
-
 
   <h2 id="introduction">2. Introduction / Problem Statement</h2>
 
@@ -180,17 +179,16 @@
 
   <p>
     <strong>
-      Can observed content and performance signals help identify content that may
-      be declining?
+      Can safe search-performance signals be used to rank pages that deserve
+      review for decline, recovery, or improvement?
     </strong>
   </p>
 
   <p>
-    The intended decision is not automatic content removal or automatic ranking
-    changes. Instead, the model is intended to help prioritize content for
-    human review and possible refresh.
+    The intended use is decision support rather than automatic content
+    modification. The model can help prioritize pages for human investigation,
+    while final decisions remain with content and SEO reviewers.
   </p>
-
 
   <h2 id="data">3. Data</h2>
 
@@ -200,69 +198,73 @@
   </p>
 
   <ul>
-    <li>Rows analysed: approximately 30,000 content records</li>
-    <li>Features available before modelling: 45 columns</li>
-    <li>Clients represented: 32 anonymized clients</li>
-    <li>Keyword articles: 27,207</li>
-    <li>Feedly articles: 2,096</li>
-    <li>Comparison articles: 697</li>
+    <li>Total records analysed: 30,000</li>
+    <li>Features used for modelling: 40</li>
+    <li>Training records: 23,837</li>
+    <li>Testing records: 6,163</li>
+    <li>Training clients: 25</li>
+    <li>Testing clients: 7</li>
   </ul>
 
   <p>
-    The target was constructed as:
+    The target label was constructed from the observed trend direction:
   </p>
 
   <p>
     <code>is_declining_label = (trend_direction == "down")</code>
   </p>
 
-  <p>
-    The resulting target distribution contained 16,262 records labelled as
-    declining and 13,738 records labelled as not declining.
-  </p>
-
   <h3>Public-safety handling</h3>
 
   <p>
     Direct identifiers such as client and content identifiers were excluded from
-    the modelling features. Fields used to construct the outcome label were also
-    excluded from the final feature set.
+    the modelling features. The trend fields used to construct the outcome were
+    also excluded from the model features to reduce direct target leakage.
   </p>
 
   <p>
-    No client names, private search queries, private URLs, domains, titles, or
-    other private identifying information are presented in this paper.
+    No client names, private search queries, private URLs, domains, credentials,
+    or other private identifying information are presented in this paper.
   </p>
-
 
   <h2 id="methodology">4. Methodology</h2>
 
   <h3>Validation strategy</h3>
 
   <p>
-    A GroupShuffleSplit was used with clients as the grouping variable.
-    The test size was 20% and the random seed was 42.
+    A GroupShuffleSplit was used with clients as the grouping variable. The test
+    size was 20% and the random seed was 42.
   </p>
 
   <p>
-    The resulting split contained:
+    The final split contained:
   </p>
 
   <ul>
     <li>Training records: 23,837</li>
     <li>Test records: 6,163</li>
-    <li>Client overlap between training and test: 0</li>
+    <li>Training clients: 25</li>
+    <li>Test clients: 7</li>
+    <li>Client overlap: 0</li>
   </ul>
 
   <p>
-    Grouping by client was used to reduce the risk that records from the same
-    client would appear in both training and test sets.
+    The zero client overlap is important because it reduces the risk of the model
+    being evaluated on records from clients it effectively saw during training.
   </p>
 
-  <h3>Model</h3>
+  <h3>Baseline</h3>
 
   <p>
-    The main model was a Random Forest classifier with:
+    A simple trend-based baseline ranked test records using the observed negative
+    trend magnitude. This provides a straightforward benchmark against which the
+    machine-learning model can be compared.
+  </p>
+
+  <h3>Random Forest model</h3>
+
+  <p>
+    The main model was a Random Forest classifier configured with:
   </p>
 
   <ul>
@@ -273,33 +275,26 @@
   </ul>
 
   <p>
-    Numeric features were median-imputed. Categorical features were imputed
-    using the most frequent value and one-hot encoded with unknown categories
-    ignored during transformation.
-  </p>
-
-  <h3>Feature groups</h3>
-
-  <p>
-    The model used available signals describing areas such as content
-    characteristics, search performance, engagement, freshness, and traffic.
-    Direct identifiers and outcome-defining fields were excluded.
+    Numeric features were median-imputed. Categorical features were imputed using
+    the most frequent value and one-hot encoded. Unknown categories were ignored
+    during transformation.
   </p>
 
   <h3>Evaluation metric</h3>
 
   <p>
-    The primary evaluation metric is Precision@50. It measures the proportion
-    of the 50 highest-ranked records that belong to the decline class.
+    Precision@50 was used as the primary ranking metric. It represents the
+    proportion of the 50 highest-ranked records that belong to the observed
+    decline class.
   </p>
-
 
   <h2 id="results">5. Results</h2>
 
   <div>
-    <span class="metric">Baseline P@50: 0.24</span>
-    <span class="metric">Random Forest P@50: 1.00</span>
-    <span class="metric">Difference: +0.76</span>
+    <span class="metric">Baseline P@50: 1.000</span>
+    <span class="metric">Random Forest P@50: 1.000</span>
+    <span class="metric">Improvement: 0.000</span>
+    <span class="metric">Accuracy: 0.801</span>
   </div>
 
   <table>
@@ -312,141 +307,213 @@
 
     <tbody>
       <tr>
-        <td>Week-5 baseline</td>
-        <td>0.24</td>
+        <td>Trend-based baseline</td>
+        <td>1.000</td>
       </tr>
 
       <tr>
         <td>Random Forest</td>
-        <td>1.00</td>
+        <td>1.000</td>
       </tr>
     </tbody>
   </table>
 
+  <h3>Feature importance</h3>
+
   <p>
-    On the held-out client-grouped test set, the Random Forest ranked 50 records
-    at the top of the queue and all 50 belonged to the observed decline class.
+    The leading feature signals from the Random Forest were:
   </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th>Importance</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td>impressions_prev_30d</td>
+        <td>0.154691</td>
+      </tr>
+      <tr>
+        <td>impressions_last_30d</td>
+        <td>0.123511</td>
+      </tr>
+      <tr>
+        <td>impressions_90d</td>
+        <td>0.069351</td>
+      </tr>
+      <tr>
+        <td>avg_position</td>
+        <td>0.051623</td>
+      </tr>
+      <tr>
+        <td>days_with_impressions</td>
+        <td>0.049155</td>
+      </tr>
+      <tr>
+        <td>content_age_days</td>
+        <td>0.040837</td>
+      </tr>
+      <tr>
+        <td>sessions_last_30d</td>
+        <td>0.028167</td>
+      </tr>
+      <tr>
+        <td>word_count</td>
+        <td>0.026239</td>
+      </tr>
+      <tr>
+        <td>char_count</td>
+        <td>0.026006</td>
+      </tr>
+      <tr>
+        <td>ctr</td>
+        <td>0.025367</td>
+      </tr>
+    </tbody>
+  </table>
 
   <div class="note">
     <strong>Important interpretation:</strong>
-    A Precision@50 of 1.00 is an observed result for this particular dataset,
-    feature construction, model, and validation split. It should not be
-    interpreted as a guarantee that the same precision will occur on future
-    unseen production data.
+    Both the baseline and Random Forest achieved Precision@50 of 1.000 on the
+    held-out test set. Therefore, this experiment does not demonstrate that the
+    Random Forest improves top-50 ranking over the baseline. The result should
+    instead be treated as evidence that the tested signals can support ranking
+    on this particular validation split.
   </div>
-
-  <h3>Operational interpretation</h3>
-
-  <p>
-    The result suggests that the available signals contain substantial information
-    about the observed decline label. The model can therefore be considered as a
-    prioritization mechanism for a human review queue.
-  </p>
-
 
   <h2 id="limitations">6. Limitations & Honest Framing</h2>
 
   <ul>
     <li>
-      The result is measured on one held-out grouped split and may not generalize
-      to future datasets.
+      The evaluation uses one client-grouped train/test split and may not
+      generalize to future data.
     </li>
 
     <li>
-      The study identifies records associated with an observed decline label;
-      it does not establish causality.
+      The decline label represents an observed trend condition and does not
+      establish why the decline occurred.
     </li>
 
     <li>
-      The model should not be interpreted as predicting or reproducing a search
-      engine's ranking algorithm.
+      The model does not predict or reproduce a search engine's ranking algorithm.
     </li>
 
     <li>
-      The unusually high measured Precision@50 should be investigated further
-      before treating it as a production-ready performance estimate.
+      Precision@50 is saturated at 1.000 for both approaches on this test split,
+      so additional validation is needed before treating the result as a strong
+      production performance estimate.
     </li>
 
     <li>
-      Potential feature overlap, label construction effects, and differences
-      between retrospective identification and genuine future prediction should
-      be tested in a future iteration.
+      Feature importance indicates model usage patterns, not causal relationships.
     </li>
 
     <li>
-      Model output is intended as directional decision-support and should be
-      reviewed by humans before content changes are made.
+      The ranked queue is intended for human review and should not automatically
+      trigger content changes.
     </li>
   </ul>
-
 
   <h2 id="recommendations">7. Ranked Recommendations</h2>
 
   <p>
-    The model output can be converted into a ranked review queue using the
-    predicted probability of decline.
+    The model output can be converted into a ranked action queue using predicted
+    decline probability together with transparent heuristic reason codes.
   </p>
 
   <ol>
     <li>
-      <strong>Review the highest-scoring content first.</strong>
-      Use the model score to prioritize a manageable review queue.
+      <strong>Review the highest-priority pages first.</strong>
+      Use the ranked score to reduce a large content collection to a manageable
+      review queue.
     </li>
 
     <li>
-      <strong>Investigate freshness.</strong>
-      Older content and content that has not been updated recently can be
-      candidates for editorial review.
+      <strong>Check content freshness.</strong>
+      Pages that have not been updated for a long period can be reviewed for
+      outdated information or missing improvements.
     </li>
 
     <li>
-      <strong>Review engagement performance.</strong>
-      Low engagement can provide additional context when deciding whether a
-      page requires improvement.
+      <strong>Investigate negative performance trends.</strong>
+      Review recent search-performance changes before deciding on an action.
     </li>
 
     <li>
-      <strong>Inspect observed performance trends.</strong>
-      Historical performance changes can help reviewers understand why a record
-      entered the review queue.
+      <strong>Review engagement signals.</strong>
+      Low engagement can provide additional context for editorial investigation.
     </li>
 
     <li>
       <strong>Keep humans in the loop.</strong>
-      Model scores should support editorial decisions rather than automatically
-      trigger content changes.
+      Reviewers should inspect the page and business context before making
+      refresh, improvement, or recovery decisions.
     </li>
   </ol>
 
+  <h3>Suggested action categories</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Signal</th>
+        <th>Suggested action</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td>Stale content + negative trend</td>
+        <td>Refresh content</td>
+      </tr>
+      <tr>
+        <td>Low engagement + negative trend</td>
+        <td>Review intent and refresh</td>
+      </tr>
+      <tr>
+        <td>Low engagement</td>
+        <td>Review content quality</td>
+      </tr>
+      <tr>
+        <td>Negative trend</td>
+        <td>Investigate decline</td>
+      </tr>
+      <tr>
+        <td>Other high-priority cases</td>
+        <td>Human review</td>
+      </tr>
+    </tbody>
+  </table>
 
   <h2 id="reproducibility">8. Reproducibility</h2>
 
   <p>
-    The analysis notebook and project materials are maintained in the public
-    GitHub repository.
+    The analysis was developed in Google Colab using Python and maintained in the
+    project repository.
   </p>
 
   <p>
+    The workflow includes data loading, leakage checking, client-grouped
+    validation, baseline ranking, Random Forest modelling, evaluation, ranked
+    recommendations, and result export.
+  </p>
+
+  <p>
+    The project repository is:
     <a href="https://github.com/Duchalsoham12/flyrank-ml-internship"
-       target="_blank">
-      View the FlyRank ML Internship project repository
+       target="_blank" rel="noopener noreferrer">
+      FlyRank ML Internship GitHub Repository
     </a>
   </p>
 
   <p>
-    The main capstone notebook is maintained under:
+    The capstone notebook and generated output files are maintained under the
+    project's <code>work/</code> directory.
   </p>
-
-  <p>
-    <code>work/notebooks/capstone.ipynb</code>
-  </p>
-
-  <p>
-    The project also contains generated result and recommendation artifacts
-    under the project's <code>work/outputs/</code> directory.
-  </p>
-
 
   <h2 id="acknowledgments">9. Acknowledgments & Data Credit</h2>
 
@@ -455,15 +522,15 @@
   </p>
 
   <p>
-    Built on the <strong>FlyRank ML Internship dataset</strong>.
+    <strong>Data credit:</strong> Built on the FlyRank ML Internship dataset.
   </p>
 
   <p>
-    <a href="https://flyrank.ai" target="_blank">
+    <a href="https://flyrank.ai"
+       target="_blank" rel="noopener noreferrer">
       FlyRank
     </a>
   </p>
-
 
   <footer>
     <p>
@@ -481,3 +548,4 @@
 
 </body>
 </html>
+```
