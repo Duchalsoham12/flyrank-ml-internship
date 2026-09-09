@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -236,8 +235,9 @@
   <h2 id="data">3. Data</h2>
 
   <p>
-    The analysis uses the anonymized content-refresh dataset provided as part of
-    the FlyRank ML Internship work.
+    The analysis uses the anonymized content-refresh starter dataset provided as
+    part of the FlyRank ML Internship work. The final modelling input was the
+    file <code>content_refresh_anonymized.csv</code>.
   </p>
 
   <ul>
@@ -255,6 +255,22 @@
 
   <p>
     <code>is_declining_label = (trend_direction == "down")</code>
+  </p>
+
+  <p>
+    The following fields were excluded from model features:
+    <code>content_id</code>, <code>client_id</code>,
+    <code>trend_direction</code>, <code>trend_pct</code>, and
+    <code>is_declining_label</code>. The trend fields were excluded because
+    <code>trend_direction</code> was used to construct the target label, while
+    identifiers were excluded to avoid using direct identifiers as predictive
+    features.
+  </p>
+
+  <p>
+    The final 30,000-row starter dataset was used directly for modelling. The
+    larger FlyRank warehouse was not used as the direct modelling input for this
+    capstone experiment.
   </p>
 
   <h3>Public-safety handling</h3>
@@ -349,23 +365,21 @@
 
   <div class="chart">
 
-```
-<div class="bar-row">
-  <div class="bar-label">Trend-based baseline</div>
-  <div class="bar-background">
-    <div class="bar-baseline"></div>
-  </div>
-  <div class="bar-value">Precision@50 = 1.000</div>
-</div>
+    <div class="bar-row">
+      <div class="bar-label">Trend-based baseline</div>
+      <div class="bar-background">
+        <div class="bar-baseline"></div>
+      </div>
+      <div class="bar-value">Precision@50 = 1.000</div>
+    </div>
 
-<div class="bar-row">
-  <div class="bar-label">Random Forest</div>
-  <div class="bar-background">
-    <div class="bar-rf"></div>
-  </div>
-  <div class="bar-value">Precision@50 = 1.000</div>
-</div>
-```
+    <div class="bar-row">
+      <div class="bar-label">Random Forest</div>
+      <div class="bar-background">
+        <div class="bar-rf"></div>
+      </div>
+      <div class="bar-value">Precision@50 = 1.000</div>
+    </div>
 
   </div>
 
@@ -383,20 +397,17 @@
       </tr>
     </thead>
 
-```
-<tbody>
-  <tr>
-    <td>Trend-based baseline</td>
-    <td>1.000</td>
-  </tr>
+    <tbody>
+      <tr>
+        <td>Trend-based baseline</td>
+        <td>1.000</td>
+      </tr>
 
-  <tr>
-    <td>Random Forest</td>
-    <td>1.000</td>
-  </tr>
-</tbody>
-```
-
+      <tr>
+        <td>Random Forest</td>
+        <td>1.000</td>
+      </tr>
+    </tbody>
   </table>
 
   <h3>Feature importance</h3>
@@ -413,51 +424,57 @@
       </tr>
     </thead>
 
-```
-<tbody>
-  <tr>
-    <td>impressions_prev_30d</td>
-    <td>0.154691</td>
-  </tr>
-  <tr>
-    <td>impressions_last_30d</td>
-    <td>0.123511</td>
-  </tr>
-  <tr>
-    <td>impressions_90d</td>
-    <td>0.069351</td>
-  </tr>
-  <tr>
-    <td>avg_position</td>
-    <td>0.051623</td>
-  </tr>
-  <tr>
-    <td>days_with_impressions</td>
-    <td>0.049155</td>
-  </tr>
-  <tr>
-    <td>content_age_days</td>
-    <td>0.040837</td>
-  </tr>
-  <tr>
-    <td>sessions_last_30d</td>
-    <td>0.028167</td>
-  </tr>
-  <tr>
-    <td>word_count</td>
-    <td>0.026239</td>
-  </tr>
-  <tr>
-    <td>char_count</td>
-    <td>0.026006</td>
-  </tr>
-  <tr>
-    <td>ctr</td>
-    <td>0.025367</td>
-  </tr>
-</tbody>
-```
+    <tbody>
+      <tr>
+        <td>impressions_prev_30d</td>
+        <td>0.154691</td>
+      </tr>
 
+      <tr>
+        <td>impressions_last_30d</td>
+        <td>0.123511</td>
+      </tr>
+
+      <tr>
+        <td>impressions_90d</td>
+        <td>0.069351</td>
+      </tr>
+
+      <tr>
+        <td>avg_position</td>
+        <td>0.051623</td>
+      </tr>
+
+      <tr>
+        <td>days_with_impressions</td>
+        <td>0.049155</td>
+      </tr>
+
+      <tr>
+        <td>content_age_days</td>
+        <td>0.040837</td>
+      </tr>
+
+      <tr>
+        <td>sessions_last_30d</td>
+        <td>0.028167</td>
+      </tr>
+
+      <tr>
+        <td>word_count</td>
+        <td>0.026239</td>
+      </tr>
+
+      <tr>
+        <td>char_count</td>
+        <td>0.026006</td>
+      </tr>
+
+      <tr>
+        <td>ctr</td>
+        <td>0.025367</td>
+      </tr>
+    </tbody>
   </table>
 
   <div class="note">
@@ -472,36 +489,35 @@
   <h2 id="limitations">6. Limitations & Honest Framing</h2>
 
   <ul>
+
     <li>
       The evaluation uses one client-grouped train/test split and may not
       generalize to future data.
     </li>
 
-```
-<li>
-  The decline label represents an observed trend condition and does not
-  establish why the decline occurred.
-</li>
+    <li>
+      The decline label represents an observed trend condition and does not
+      establish why the decline occurred.
+    </li>
 
-<li>
-  The model does not predict or reproduce a search engine's ranking algorithm.
-</li>
+    <li>
+      The model does not predict or reproduce a search engine's ranking algorithm.
+    </li>
 
-<li>
-  Precision@50 is saturated at 1.000 for both approaches on this test split,
-  so additional validation is needed before treating the result as a strong
-  production performance estimate.
-</li>
+    <li>
+      Precision@50 is saturated at 1.000 for both approaches on this test split,
+      so additional validation is needed before treating the result as a strong
+      production performance estimate.
+    </li>
 
-<li>
-  Feature importance indicates model usage patterns, not causal relationships.
-</li>
+    <li>
+      Feature importance indicates model usage patterns, not causal relationships.
+    </li>
 
-<li>
-  The ranked queue is intended for human review and should not automatically
-  trigger content changes.
-</li>
-```
+    <li>
+      The ranked queue is intended for human review and should not automatically
+      trigger content changes.
+    </li>
 
   </ul>
 
@@ -513,41 +529,41 @@
   </p>
 
   <ol>
+
     <li>
       <strong>Review the highest-priority pages first.</strong>
       Use the ranked score to reduce a large content collection to a manageable
       review queue.
     </li>
 
-```
-<li>
-  <strong>Check content freshness.</strong>
-  Pages that have not been updated for a long period can be reviewed for
-  outdated information or missing improvements.
-</li>
+    <li>
+      <strong>Check content freshness.</strong>
+      Pages that have not been updated for a long period can be reviewed for
+      outdated information or missing improvements.
+    </li>
 
-<li>
-  <strong>Investigate negative performance trends.</strong>
-  Review recent search-performance changes before deciding on an action.
-</li>
+    <li>
+      <strong>Investigate negative performance trends.</strong>
+      Review recent search-performance changes before deciding on an action.
+    </li>
 
-<li>
-  <strong>Review engagement signals.</strong>
-  Low engagement can provide additional context for editorial investigation.
-</li>
+    <li>
+      <strong>Review engagement signals.</strong>
+      Low engagement can provide additional context for editorial investigation.
+    </li>
 
-<li>
-  <strong>Keep humans in the loop.</strong>
-  Reviewers should inspect the page and business context before making
-  refresh, improvement, or recovery decisions.
-</li>
-```
+    <li>
+      <strong>Keep humans in the loop.</strong>
+      Reviewers should inspect the page and business context before making
+      refresh, improvement, or recovery decisions.
+    </li>
 
   </ol>
 
   <h3>Suggested action categories</h3>
 
   <table>
+
     <thead>
       <tr>
         <th>Signal</th>
@@ -555,30 +571,34 @@
       </tr>
     </thead>
 
-```
-<tbody>
-  <tr>
-    <td>Stale content + negative trend</td>
-    <td>Refresh content</td>
-  </tr>
-  <tr>
-    <td>Low engagement + negative trend</td>
-    <td>Review intent and refresh</td>
-  </tr>
-  <tr>
-    <td>Low engagement</td>
-    <td>Review content quality</td>
-  </tr>
-  <tr>
-    <td>Negative trend</td>
-    <td>Investigate decline</td>
-  </tr>
-  <tr>
-    <td>Other high-priority cases</td>
-    <td>Human review</td>
-  </tr>
-</tbody>
-```
+    <tbody>
+
+      <tr>
+        <td>Stale content + negative trend</td>
+        <td>Refresh content</td>
+      </tr>
+
+      <tr>
+        <td>Low engagement + negative trend</td>
+        <td>Review intent and refresh</td>
+      </tr>
+
+      <tr>
+        <td>Low engagement</td>
+        <td>Review content quality</td>
+      </tr>
+
+      <tr>
+        <td>Negative trend</td>
+        <td>Investigate decline</td>
+      </tr>
+
+      <tr>
+        <td>Other high-priority cases</td>
+        <td>Human review</td>
+      </tr>
+
+    </tbody>
 
   </table>
 
@@ -598,14 +618,25 @@
   <p>
     The project repository is:
     <a href="https://github.com/Duchalsoham12/flyrank-ml-internship"
-       target="_blank" rel="noopener noreferrer">
+       target="_blank"
+       rel="noopener noreferrer">
       FlyRank ML Internship GitHub Repository
     </a>
   </p>
 
   <p>
-    The capstone notebook and generated output files are maintained under the
-    project's <code>work/</code> directory.
+    The capstone notebook is available in:
+    <code>work/notebooks/capstone.ipynb</code>
+  </p>
+
+  <p>
+    The generated output files are maintained under:
+    <code>work/outputs/</code>
+  </p>
+
+  <p>
+    The workflow and outputs can therefore be reproduced from the project
+    repository and capstone notebook.
   </p>
 
   <h2 id="acknowledgments">9. Acknowledgments & Data Credit</h2>
@@ -620,23 +651,23 @@
 
   <p>
     <a href="https://flyrank.ai"
-       target="_blank" rel="noopener noreferrer">
+       target="_blank"
+       rel="noopener noreferrer">
       FlyRank
     </a>
   </p>
 
   <footer>
+
     <p>
       This paper presents an educational and research-oriented analysis.
       Results are observational and directional and should be interpreted as
       decision-support rather than as a production guarantee.
     </p>
 
-```
-<p>
-  © 2026 — FlyRank ML Internship Capstone
-</p>
-```
+    <p>
+      © 2026 — FlyRank ML Internship Capstone
+    </p>
 
   </footer>
 
